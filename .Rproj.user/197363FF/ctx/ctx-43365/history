@@ -1,0 +1,19 @@
+# Connect to dataset and write data
+# to a partitioned Parquet file:
+open_dataset("s3://voltrondata-labs-datasets/nyc-taxi") |>
+filter(year %in% 2012:2021) |>
+write_dataset("data",
+partitioning = c("year", "month"))
+library(arrow)
+install.packages("arrow")
+library(arrow)
+# Connect to dataset and write data
+# to a partitioned Parquet file:
+open_dataset("s3://voltrondata-labs-datasets/nyc-taxi") |>
+filter(year %in% 2012:2021) |>
+write_dataset("data",
+partitioning = c("year", "month"))
+open_dataset("s3://voltrondata-labs-datasets/nyc-taxi")
+# Connect to dataset and write data
+# to a partitioned Parquet file:
+ds <- open_dataset("s3://voltrondata-labs-datasets/nyc-taxi")

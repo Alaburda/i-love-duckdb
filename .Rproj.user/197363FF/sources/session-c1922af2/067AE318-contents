@@ -1,0 +1,113 @@
+library(dplyr)
+library(arrow)
+
+# Connect to dataset and write data
+# to a partitioned Parquet file:
+ds <- open_dataset("s3://voltrondata-labs-datasets/nyc-taxi")
+
+ds %>% 
+  filter(year %in% 2015:2016) %>% 
+  write_dataset("data", partitioning = c("year", "month"))
+
+
+# Prepping a csv file ----
+
+library(duckdb)
+
+con <- dbConnect(duckdb())
+
+dbSendStatement(con, "COPY (select * from read_parquet('data/**/*.parquet') where year = 2019 and month < 7) TO '../data/nyc-taxi-year-2019-h1.csv' (HEADER, DELIMITER ';');")
+
+# Reading benchmark ----
+
+con <- dbConnect(duckdb())
+
+reading_bench <- bench::mark(
+  min_iterations = 10,
+  nyc_big <- dbGetQuery(con, "select * from '../data/nyc-taxi-year-2019.csv'"),
+  readr::read_csv2("../data/nyc-taxi-year-2019.csv"),
+  nyc_big <- data.table::fread("../data/nyc-taxi-year-2019.csv", sep = ";"),
+  check = FALSE
+)
+
+nyc_big <- nyc_big %>% 
+  as.data.frame()
+
+# Aggregation benchmark ----
+
+nyc <- open_dataset("s3://voltrondata-labs-datasets/nyc-taxi-tiny") %>% 
+  collect()
+
+dbWriteTable(con, "nyc", nyc_big, overwrite = TRUE)
+
+dbSendStatement(con, "CREATE VIEW nyc AS SELECT * FROM read_parquet('data/**/*.parquet') where year = 2019;")
+dbSendStatement(con, "CREATE VIEW nyc_csv AS SELECT * FROM '../data/nyc-taxi-year-2019.csv';")
+
+
+library(duckplyr)
+
+bnch <- bench::mark(
+  min_iterations = 1,
+  nyc_big %>% 
+    group_by(month) %>% 
+    summarise(all_trips = n(),
+              shared_trips = sum(passenger_count > 1, na.rm = T),
+              tip_sum = sum(tip_amount, na.rm = TRUE)) %>% 
+    mutate(pct_shared = shared_trips / all_trips * 100),
+  nyc_big %>% 
+    as_duckplyr_df() %>% 
+    summarise(all_trips = n(),
+              shared_trips = sum(passenger_count > 1, na.rm = T),
+              tip_sum = sum(tip_amount, na.rm = TRUE),
+              .by = month) %>% 
+    mutate(pct_shared = shared_trips / all_trips * 100),
+  tbl(con, "nyc") %>% 
+    group_by(month) %>% 
+    summarise(all_trips = n(),
+              shared_trips = sum(passenger_count > 1, na.rm = T),
+              tip_sum = sum(tip_amount, na.rm = TRUE)) %>% 
+    mutate(pct_shared = shared_trips / all_trips * 100),
+  tbl(con, "nyc_csv") %>% 
+    group_by(month) %>% 
+    summarise(all_trips = n(),
+              shared_trips = sum(passenger_count > 1, na.rm = T),
+              tip_sum = sum(tip_amount, na.rm = TRUE)) %>% 
+    mutate(pct_shared = shared_trips / all_trips * 100),
+  check = FALSE
+  )
+
+nyc_tips <- nyc_big %>% 
+  group_by(payment_type,vendor_name,month) %>% 
+  summarise(tip_sum = sum(tip_amount, na.rm = TRUE)) %>% 
+  ungroup()
+
+nyc_tips_duckdb <- nyc_tips %>% 
+  as_duckplyr_df()
+
+bnch_2 <- bench::mark(
+  min_iterations = 1,
+  nyc %>% 
+    as_duckplyr_df() %>%
+    left_join(nyc_tips_duckdb, by = c("payment_type", "vendor_name", "month")) %>% 
+    summarise(all_trips = n(),
+              shared_trips = sum(passenger_count > 1, na.rm = T),
+              tip_avg = mean(tip_sum, na.rm = TRUE),
+              .by = month) %>% 
+    mutate(pct_shared = shared_trips / all_trips * 100),
+  nyc %>% 
+    left_join(nyc_tips, by = c("payment_type", "vendor_name", "month")) %>% 
+    summarise(all_trips = n(),
+              shared_trips = sum(passenger_count > 1, na.rm = T),
+              tip_avg = mean(tip_sum, na.rm = TRUE),
+              .by = month) %>% 
+    mutate(pct_shared = shared_trips / all_trips * 100),
+  check = FALSE
+)
+
+
+dbSendStatement(con, "COPY (select * from read_parquet('data/**/*.parquet') where year = 2019) TO '../data/nyc-taxi-year-2019.csv' (HEADER, DELIMITER ';');")
+
+
+
+
+

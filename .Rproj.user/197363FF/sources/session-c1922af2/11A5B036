@@ -1,0 +1,32 @@
+{
+    "id": "11A5B036",
+    "path": "C:/Users/alabu/Desktop/repos/i-love-duckdb/i-love-duckdb.qmd",
+    "project_path": "i-love-duckdb.qmd",
+    "type": "quarto_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1715254372505.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "350,30",
+        "scrollLine": "343",
+        "rmdVisualMode": "false",
+        "rmdVisualWrapConfigured": "true",
+        "docOutlineVisible": "1",
+        "rmdVisualModeLocation": "4099:3874.39990234375",
+        "rmdVisualCollapsedChunks": ""
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1715632882,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1715632882546,
+    "read_only": false,
+    "read_only_alternatives": []
+}

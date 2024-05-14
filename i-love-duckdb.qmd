@@ -1,0 +1,509 @@
+---
+title: "I Love DuckDB"
+author: "Paulius Alaburda"
+format: revealjs
+engine: knitr
+---
+
+```{r setup}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(duckdb)
+library(DBI)
+library(dplyr)
+library(duckplyr)
+library(bench)
+library(ggplot2)
+options(duckdb.materialize_message = FALSE)
+
+con <- dbConnect(duckdb())
+
+```
+
+## Ką galima buvo rinktis iš Duomenų bazių 2018 m.?
+
+Jeigu nori **sukti** analitines užklausas, turėjai turėti dedikuotą serverį (ir komandą).
+
+![](images/clipboard-49769828.png){fig-align="center" width="540"}
+
+::: footer
+Hannes Mühleisen & Mark Raasveldt, [The Case for In-Process Analytics](https://duckdb.org/pdf/sigmod2021-muehleisen-inprocess-slides.pdf)
+:::
+
+## Kas tuo metu buvo išleista?
+
+-   Nauji formatai: 2013 m. .parquet, 2016 m. Arrow projektas
+-   Nauji column-store varikliai: 2015 m. Microsoft VertiPaq, 2019 m. Tableau Hyper
+
+![](images/clipboard-466915577.png)
+
+::: footer
+Michael Berk, [Demystifying the Parquet File Format](https://towardsdatascience.com/demystifying-the-parquet-file-format-13adb0206705)
+:::
+
+## Kas yra DuckDB?
+
+-   In-process SQL OLAP duomenų bazė sukurta [DuckDB Labs](https://duckdblabs.com/)
+-   Parašyta su C++, neturi priklausinių ir turi bibliotekas populiariose programavimo kalbose, įskaitant `R`.
+-   Sukuria DB atmintyje arba sukuria vieną failą kaip SQLite
+-   Nemokama!
+
+## Kaip įsijungti DuckDB?
+
+-   R paketas yra `DuckDB`
+-   DuckDB yra kaip visos DB - dbConnect priima `duckdb::duckdb()` kaip driver'į ir sukuria DuckDB sąsają
+
+```{r}
+#| eval: false
+#| echo: true
+
+install.packages("duckdb")
+library(duckdb)
+
+#con <- dbConnect(duckdb(), ":memory:")
+#con <- dbConnect(duckdb(), "database.db")
+
+con <- dbConnect(duckdb())
+
+```
+
+## Demonstraciją atliksime su TPC-H
+
+TPC-H yra automatiškai sugeneruojamas duomenų rinkinys, skirtas standartizuoti duomenų bazių testavimą. Kartu su juo taip pat viešai prieinamos testinės SQL užklausos.
+
+![](images/clipboard-2323634080.png){fig-align="center"}
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+
+lineitem <- as_tibble(duckdb:::sql("INSTALL tpch; LOAD tpch; CALL dbgen(sf=1); FROM lineitem;"))
+
+duckdb_register(con, name = "lineitem", df = lineitem)
+# dbSendStatement(con, "copy (select * from lineitem) to '../lineitem.parquet' (FORMAT PARQUET)")
+# dbSendStatement(con, "copy (select * from lineitem) to '../lineitem.csv' (HEADER, DELIMITER ';')")
+
+```
+
+## Naudosime TPC-H Query 1
+
+::: panel-tabset
+### R
+
+```{r}
+#| echo: true
+
+tpch_01 <- function(lineitem) {
+  lineitem |>
+    select(l_shipdate, l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
+    filter(l_shipdate <= !!as.Date("1998-09-02")) |>
+    select(l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
+    summarise(
+      sum_qty = sum(l_quantity),
+      sum_base_price = sum(l_extendedprice),
+      sum_disc_price = sum(l_extendedprice * (1 - l_discount)),
+      sum_charge = sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)),
+      avg_qty = mean(l_quantity),
+      avg_price = mean(l_extendedprice),
+      avg_disc = mean(l_discount),
+      count_order = n(),
+      .by = c(l_returnflag, l_linestatus)
+    ) |>
+    arrange(l_returnflag, l_linestatus)
+}
+
+```
+
+### SQL
+
+```{sql}
+#| eval: false
+#| echo: true
+SELECT
+  l_returnflag, 
+  l_linestatus, 
+  sum(l_quantity) as sum_qty, 
+  sum(l_extendedprice) as sum_base_price,
+  sum(l_extendedprice*(1-l_discount)) as sum_disc_price, 
+  sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, 
+  avg(l_quantity) as avg_qty, 
+  avg(l_extendedprice) as avg_price, 
+  avg(l_discount) as avg_disc, 
+  count(*) as count_order
+FROM
+  lineitem
+WHERE 
+  l_shipdate <= make_date(1998,12,1)
+GROUP BY 
+  l_returnflag,
+  l_linestatus 
+ORDER BY 
+  l_returnflag,
+  l_linestatus
+
+
+```
+:::
+
+## DuckDB kverksi SQL kalba - kaip ir kitos DB
+
+```{r}
+#| echo: true
+
+dbGetQuery(con, "SELECT * FROM lineitem LIMIT 5")
+
+```
+
+## Failų skaitymas
+
+```{r}
+
+#| echo: false
+
+read_benchmark <- bench::mark(
+  min_iterations = 3,
+  duckdb_csv = dbGetQuery(con, "select * from '../lineitem.csv'"),
+  duckdb_parquet = dbGetQuery(con, "select * from '../lineitem.parquet'"),
+  readr_csv = readr::read_csv2("../lineitem.csv"),
+  data.table_csv = data.table::fread("../lineitem.csv", sep = ";"),
+  check = FALSE
+)
+
+autoplot(read_benchmark) + 
+  theme(axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) + 
+  labs(title = "readr, data.table ir DuckDB failų skaitymo greičiai", subtitle = "Vidutinė trukmė 9 sekundės, trumpiau yra geriau.")
+
+```
+
+## Bet DuckDB gali siųsti užklausas į failus!
+
+```{r}
+#| echo: false
+
+agg_benchmark <- bench::mark(
+  min_iterations = 10,
+  duckdb_csv = dbGetQuery(con, "SELECT
+  l_returnflag, 
+  l_linestatus, 
+  sum(l_quantity) as sum_qty, 
+  sum(l_extendedprice) as sum_base_price,
+  sum(l_extendedprice*(1-l_discount)) as sum_disc_price, 
+  sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, 
+  avg(l_quantity) as avg_qty, 
+  avg(l_extendedprice) as avg_price, 
+  avg(l_discount) as avg_disc, 
+  count(*) as count_order
+FROM
+  '../lineitem.csv'
+WHERE 
+  l_shipdate <= make_date(1998,12,1)
+GROUP BY 
+  l_returnflag,
+  l_linestatus 
+ORDER BY 
+  l_returnflag,
+  l_linestatus
+"),
+  duckdb_parquet = dbGetQuery(con, "SELECT
+  l_returnflag, 
+  l_linestatus, 
+  sum(l_quantity) as sum_qty, 
+  sum(l_extendedprice) as sum_base_price,
+  sum(l_extendedprice*(1-l_discount)) as sum_disc_price, 
+  sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, 
+  avg(l_quantity) as avg_qty, 
+  avg(l_extendedprice) as avg_price, 
+  avg(l_discount) as avg_disc, 
+  count(*) as count_order
+FROM
+  '../lineitem.parquet'
+WHERE 
+  l_shipdate <= make_date(1998,12,1)
+GROUP BY 
+  l_returnflag,
+  l_linestatus 
+ORDER BY 
+  l_returnflag,
+  l_linestatus"),
+  dplyr = lineitem %>% tpch_01(),
+  check = FALSE
+)
+
+autoplot(agg_benchmark) + 
+  theme(axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) + 
+  labs(title = "TPC-H Query 1 trukmė")
+
+
+```
+
+## DuckDB gali dirbti su skirtingais failų formatais
+
+```{r}
+#| eval: false
+#| echo: true
+
+# Lentelės viduje DuckDB
+dbGetQuery(con, "SELECT * FROM lineitem LIMIT 5")
+
+# csv
+dbGetQuery(con, "SELECT * FROM '../lineitem.csv' LIMIT 5")
+
+# parquet
+dbGetQuery(con, "SELECT * FROM '../lineitem.parquet' LIMIT 5")
+
+# R objektai?!
+duckdb_register(con, name = "lineitem", df = lineitem)
+
+dbGetQuery(con, "SELECT * FROM lineitem LIMIT 5")
+
+# Taip pat .json, .xlsx, SQLite, Postgres!
+
+```
+
+
+## DuckDB suderinamas su dplyr
+
+`dbplyr` paketas išverčia dplyr komandas į SQL komandas - užtenka į dplyr komandas perduoti lentelę su `tbl()` funkcija.
+
+![](images/clipboard-2744124442.png)
+
+::: footer
+[Part 2: Data Wrangling with Arrow](https://arrow-user2022.netlify.app/data-wrangling.html#combining-arrow-with-duckdb)
+:::
+
+## Ką reikia pakeisti savo kode?
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| eval: false
+#| echo: true
+lineitem %>% 
+  tpch_01()
+
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+#| eval: false
+#| echo: true
+
+con <- dbConnect(duckdb())
+
+duckdb_register(con, name = "lineitem", df = lineitem)
+
+tbl(con, "lineitem") %>% 
+  tpch_01()
+
+```
+:::
+:::
+
+## dplyr + DuckDB greičio palyginimas
+
+```{r}
+
+agg_benchmark <- bench::mark(
+  min_iterations = 10,
+  duckdb_csv = dbGetQuery(con, "SELECT
+  l_returnflag, 
+  l_linestatus, 
+  sum(l_quantity) as sum_qty, 
+  sum(l_extendedprice) as sum_base_price,
+  sum(l_extendedprice*(1-l_discount)) as sum_disc_price, 
+  sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, 
+  avg(l_quantity) as avg_qty, 
+  avg(l_extendedprice) as avg_price, 
+  avg(l_discount) as avg_disc, 
+  count(*) as count_order
+FROM
+  '../lineitem.csv'
+WHERE 
+  l_shipdate <= make_date(1998,12,1)
+GROUP BY 
+  l_returnflag,
+  l_linestatus 
+ORDER BY 
+  l_returnflag,
+  l_linestatus
+"),
+  duckdb_parquet = dbGetQuery(con, "SELECT
+  l_returnflag, 
+  l_linestatus, 
+  sum(l_quantity) as sum_qty, 
+  sum(l_extendedprice) as sum_base_price,
+  sum(l_extendedprice*(1-l_discount)) as sum_disc_price, 
+  sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, 
+  avg(l_quantity) as avg_qty, 
+  avg(l_extendedprice) as avg_price, 
+  avg(l_discount) as avg_disc, 
+  count(*) as count_order
+FROM
+  '../lineitem.parquet'
+WHERE 
+  l_shipdate <= make_date(1998,12,1)
+GROUP BY 
+  l_returnflag,
+  l_linestatus 
+ORDER BY 
+  l_returnflag,
+  l_linestatus"),
+  dplyr = lineitem %>% tpch_01(),
+  duckdb_dplyr = tbl(con, "lineitem") %>% tpch_01(),
+  check = FALSE
+)
+
+autoplot(agg_benchmark) + 
+  theme(axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) + 
+  labs(title = "Kiek dplyr ir DuckDB užtrunka agreguoti?", subtitle = "Agregacija pagal stulpelius l_returnflag ir l_linestatus")
+
+
+```
+
+## Kada apsimoka naudoti DuckDB?
+
+![](images/clipboard-1389663224.png)
+
+::: footer
+Art Steinmetz, [The Truth About Data Wrappers](https://outsiderdata.netlify.app/posts/2024-04-10-the-truth-about-tidy-wrappers/benchmark_wrappers#should-you-always-use-an-alt-database)
+:::
+
+## duckplyr - naujas vaikis rajone
+
+-   Posit ir DuckDB Labs kartu kuria biblioteką, su kuria reikės tik vieno eilutės pakeitimo.
+-   duckplyr naudoja DuckDB relational API tiesiogiai - nesinaudoja DuckDB SQL sąsaja
+-   Kai duckplyr negali išversti dplyr kodo į DuckDB, tiesiog naudoja R variklį
+
+![](images/clipboard-3537356486.png)
+
+## duckplyr sintaksė
+
+### as_duckplyr_df()
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-line-numbers: "1-4|2"
+
+lineitem %>% 
+  as_duckplyr_df() %>% 
+  tpch_01()
+
+```
+
+### duckplyr::methods_overwrite()
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-line-numbers: "1-4|1"
+
+duckplyr::methods_overwrite()
+
+lineitem %>% 
+  tpch_01()
+
+```
+
+## TPCH Query 1 greitis
+
+::: panel-tabset
+## duckplyr be R fallback
+
+```{r}
+#| eval: true
+#| echo: false
+#| code-line-numbers: "1-16|14"
+
+tpch_query_1 <- mark(
+  min_iterations = 10,
+  dplyr = tpch_01(lineitem),
+  duckplyr = tpch_01(as_duckplyr_df(lineitem)),
+  duckdb = tbl(con, "lineitem") %>% tpch_01(), 
+  check = FALSE
+)
+
+autoplot(tpch_query_1) + 
+  theme(axis.text.x = element_text(size = 17),
+        axis.text.y = element_text(size = 17)) + 
+  labs(title = "TPC-H Query 1 rezultatai", 
+       subtitle = glue::glue("dplyr mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'dplyr']}, duckplyr mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'duckplyr']}, duckdb mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'duckdb']}"))
+
+```
+
+## duckplyr su R fallback
+
+```{r}
+#| eval: true
+#| echo: false
+#| message: false
+
+tpch_01_na <- function(lineitem) {
+  lineitem |>
+    select(l_shipdate, l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
+    filter(l_shipdate <= !!as.Date("1998-09-02")) |>
+    select(l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
+    summarise(
+      sum_qty = sum(l_quantity, na.rm = TRUE),
+      sum_base_price = sum(l_extendedprice),
+      sum_disc_price = sum(l_extendedprice * (1 - l_discount)),
+      sum_charge = sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)),
+      avg_qty = mean(l_quantity),
+      avg_price = mean(l_extendedprice),
+      avg_disc = mean(l_discount),
+      count_order = n(),
+      .by = c(l_returnflag, l_linestatus)
+    ) |>
+    arrange(l_returnflag, l_linestatus)
+}
+
+tpch_query_1 <- mark(
+  min_iterations = 10,
+  dplyr = tpch_01_na(lineitem),
+  duckplyr = tpch_01_na(suppressMessages(as_duckplyr_df(lineitem))),
+  duckdb = tbl(con, "lineitem") %>% tpch_01_na(), 
+  check = FALSE
+)
+
+autoplot(tpch_query_1) + 
+  labs(title = "TPC-H Query 1 rezultatai", 
+       subtitle = glue::glue("dplyr mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'dplyr']}, duckplyr mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'duckplyr']}, duckdb mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'duckdb']}"))
+
+```
+:::
+
+## DuckDB plėtiniai (extensions)
+
+DuckDB galima išplėsti su [plėtiniais](https://duckdb.org/docs/extensions/overview.html). Pavyzdžiui, `httpfs` leidžia skaityti nuotolinius .parquet failus:
+
+```{r}
+#| message: false
+#| warning: false
+#| echo: true
+#| eval: false
+
+dataset <- "https://static.data.gouv.fr/resources/bureaux-de-vote-et-adresses-de-leurs-electeurs/20230626-135723/table-adresses-reu.parquet"
+
+dbExecute(con, "INSTALL httpfs;")
+dbExecute(con, "LOAD httpfs;")
+
+dbSendQuery(con, glue::glue("
+  CREATE VIEW bureaux AS
+    SELECT * 
+    FROM '{dataset}'"))
+
+dbGetQuery(con, "
+  DESCRIBE bureaux")
+
+```
+
+::: footer
+iresmi.net, [Fast Remote Parquet](https://r.iresmi.net/posts/2023/fast_remote_parquet/)
+:::

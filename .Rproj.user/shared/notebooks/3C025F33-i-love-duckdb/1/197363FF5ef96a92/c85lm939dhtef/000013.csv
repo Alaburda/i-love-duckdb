@@ -1,0 +1,5 @@
+"0","dbGetQuery(con, ""COPY (select * from read_parquet('data/**/*.parquet') where year = 2019) TO 'nyc-taxi-2019.csv' (HEADER, DELIMITER ';');"")
+"
+"2","Error: rapi_execute: Failed to run query
+Error: IO Error: Could not write file ""nyc-taxi-2019.csv"" (error in WriteFile): There is not enough space on the disk.
+"

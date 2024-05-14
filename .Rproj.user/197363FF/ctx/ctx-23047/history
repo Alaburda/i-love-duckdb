@@ -1,0 +1,449 @@
+# Connect to dataset and write data
+# to a partitioned Parquet file:
+open_dataset("s3://voltrondata-labs-datasets/nyc-taxi") |>
+filter(year %in% 2012:2021) |>
+write_dataset("data",
+partitioning = c("year", "month"))
+library(arrow)
+install.packages("arrow")
+library(arrow)
+# Connect to dataset and write data
+# to a partitioned Parquet file:
+open_dataset("s3://voltrondata-labs-datasets/nyc-taxi") |>
+filter(year %in% 2012:2021) |>
+write_dataset("data",
+partitioning = c("year", "month"))
+open_dataset("s3://voltrondata-labs-datasets/nyc-taxi")
+# Connect to dataset and write data
+# to a partitioned Parquet file:
+ds <- open_dataset("s3://voltrondata-labs-datasets/nyc-taxi")
+con <- dbConnect(duckdb())
+library(duckdb)
+library(odbc)
+library(dplyr)
+duckdb_parquet = dbGetQuery(con, "select * from read_parquet('data/**/*.parquet') where year = 2019 and month < 7")
+con <- dbConnect(duckdb())
+duckdb_parquet = dbGetQuery(con, "select * from read_parquet('data/**/*.parquet') where year = 2019 and month < 7")
+rm(duckdb_parquet)
+invisible(gc())
+duckdb_parquet = dbGetQuery(con, "select * from read_parquet('data/**/*.parquet') where year = 2019 and month = 7")
+duckdb_parquet = dbGetQuery(con, "select * from read_parquet('data/**/*.parquet') where year = 2019 and month in (1,2)")
+View(duckdb_parquet)
+nyc_query <- function(nyc) {
+nyc %>%
+summarise(
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+.by = c(month,vendor_name,payment_type)
+) %>%
+arrange(month,vendor_name,payment_type)
+}
+nyc_query <- mark(
+min_iterations = 10,
+dplyr = nyc_query(duckdb_parquet),
+duckplyr = nyc_query(as_duckplyr_df(duckdb_parquet)),
+check = FALSE
+)
+library(bench)
+nyc_query <- mark(
+min_iterations = 10,
+dplyr = nyc_query(duckdb_parquet),
+duckplyr = nyc_query(as_duckplyr_df(duckdb_parquet)),
+check = FALSE
+)
+library(duckplyr)
+nyc_query <- mark(
+min_iterations = 10,
+dplyr = nyc_query(duckdb_parquet),
+duckplyr = nyc_query(as_duckplyr_df(duckdb_parquet)),
+check = FALSE
+)
+library(ggplot2)
+autoplot(nyc_query)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+group_by(month) %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE)) %>%
+mutate(pct_shared = shared_trips / all_trips * 100),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month) %>%
+mutate(pct_shared = shared_trips / all_trips * 100))
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+group_by(month) %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE)) %>%
+mutate(pct_shared = shared_trips / all_trips * 100),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month) %>%
+mutate(pct_shared = shared_trips / all_trips * 100),
+check = FALSE)
+autoplot(nyc_query_2)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+group_by(month) %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE)) %>%
+mutate(pct_shared = shared_trips / all_trips * 100),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month) %>%
+mutate(pct_shared = shared_trips / all_trips * 100),
+check = FALSE)
+autoplot(nyc_query_2)
+nyc_query <- function(nyc) {
+nyc %>%
+summarise(
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+.by = c(month,vendor_name,payment_type)
+)
+}
+nyc_query <- mark(
+min_iterations = 10,
+dplyr = nyc_query(duckdb_parquet),
+duckplyr = nyc_query(as_duckplyr_df(duckdb_parquet)),
+check = FALSE
+)
+autoplot(nyc_query)
+nyc_query <- function(nyc) {
+nyc %>%
+summarise(
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+.by = c(month)
+) %>%
+arrange(month)
+}
+nyc_query <- mark(
+min_iterations = 10,
+dplyr = nyc_query(duckdb_parquet),
+duckplyr = nyc_query(as_duckplyr_df(duckdb_parquet)),
+check = FALSE
+)
+autoplot(nyc_query)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+group_by(month) %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE)),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month),
+check = FALSE)
+autoplot(nyc_query_2)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month) %>%
+mutate(pct_shared = shared_trips / all_trips * 100),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month) %>%
+mutate(pct_shared = shared_trips / all_trips * 100),
+check = FALSE)
+autoplot(nyc_query_2)
+autoplot(nyc_query)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month),
+check = FALSE)
+autoplot(nyc_query_2)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+shared_trips = sum(passenger_count > 1, na.rm = T),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month),
+check = FALSE)
+autoplot(nyc_query_2)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+summarise(
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+.by = c(month)
+) %>%
+arrange(month),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+.by = c(month)
+) %>%
+arrange(month),
+check = FALSE)
+autoplot(nyc_query_2)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount, na.rm = TRUE),
+.by = month),
+check = FALSE)
+autoplot(nyc_query_2)
+nyc_query_2 <- bench::mark(
+min_iterations = 10,
+dplyr = duckdb_parquet %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount),
+.by = month),
+duckplyr = duckdb_parquet %>%
+as_duckplyr_df() %>%
+summarise(all_trips = n(),
+sum_fare = sum(fare_amount),
+avg_fare = mean(fare_amount),
+count_trips = n(),
+sum_extra_fare = sum(total_amount-fare_amount),
+avg_total = mean(total_amount),
+tip_sum = sum(tip_amount),
+.by = month),
+check = FALSE)
+autoplot(nyc_query_2)
+tpch_01 <- function(lineitem) {
+lineitem |>
+filter(l_shipdate <= !!as.Date("1998-09-02")) |>
+summarise(
+sum_qty = sum(l_quantity),
+sum_base_price = sum(l_extendedprice, na.rm = TRUE),
+sum_disc_price = sum(l_extendedprice * (1 - l_discount)),
+sum_charge = sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)),
+avg_qty = mean(l_quantity),
+avg_price = mean(l_extendedprice),
+avg_disc = mean(l_discount),
+count_order = n(),
+.by = c(l_returnflag, l_linestatus)
+) |>
+arrange(l_returnflag, l_linestatus)
+}
+lineitem <- as_tibble(duckdb:::sql("INSTALL tpch; LOAD tpch; CALL dbgen(sf=2); FROM lineitem;"))
+tpch_01 <- function(lineitem) {
+lineitem |>
+filter(l_shipdate <= !!as.Date("1998-09-02")) |>
+summarise(
+sum_qty = sum(l_quantity),
+sum_base_price = sum(l_extendedprice, na.rm = TRUE),
+sum_disc_price = sum(l_extendedprice * (1 - l_discount)),
+sum_charge = sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)),
+avg_qty = mean(l_quantity),
+avg_price = mean(l_extendedprice),
+avg_disc = mean(l_discount),
+count_order = n(),
+.by = c(l_returnflag, l_linestatus)
+) |>
+arrange(l_returnflag, l_linestatus)
+}
+tpch_query_1 <- mark(
+min_iterations = 10,
+dplyr = tpch_01(lineitem),
+duckplyr = tpch_01(as_duckplyr_df(lineitem)),
+duckdb = tbl(con, "lineitem") %>% tpch_01(),
+check = FALSE
+)
+duckdb_register(con, name = "lineitem", df = lineitem)
+tpch_query_1 <- mark(
+min_iterations = 10,
+dplyr = tpch_01(lineitem),
+duckplyr = tpch_01(as_duckplyr_df(lineitem)),
+duckdb = tbl(con, "lineitem") %>% tpch_01(),
+check = FALSE
+)
+autoplot(tpch_query_1\)
+autoplot(tpch_query_1)
+tpch_query_1
+tpch_query_1$median[[1]]
+?as_duckplyr_df
+tpch_01_na <- function(lineitem) {
+lineitem |>
+select(l_shipdate, l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
+filter(l_shipdate <= !!as.Date("1998-09-02")) |>
+select(l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) |>
+summarise(
+sum_qty = sum(l_quantity, na.rm = TRUE),
+sum_base_price = sum(l_extendedprice),
+sum_disc_price = sum(l_extendedprice * (1 - l_discount)),
+sum_charge = sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)),
+avg_qty = mean(l_quantity),
+avg_price = mean(l_extendedprice),
+avg_disc = mean(l_discount),
+count_order = n(),
+.by = c(l_returnflag, l_linestatus)
+) |>
+arrange(l_returnflag, l_linestatus)
+}
+tpch_01_na(as_duckplyr_df(lineitem))
+tpch_01_na(suppressWarnings(as_duckplyr_df(lineitem)))
+tpch_01_na(invisible(as_duckplyr_df(lineitem)))
+invisible(tpch_01_na((as_duckplyr_df(lineitem))))
+options(duckdb.materialize_message = FALSE)
+tpch_01_na(as_duckplyr_df(lineitem))
+tpch_query_1
+tpch_query_1$median
+glue::glue("dplyr mediana {tpch_query_1$median[tpch_query_1$expression == "dplyr"]}")
+glue::glue("dplyr mediana {tpch_query_1$median[tpch_query_1$expression == 'dplyr']}")
+print(glue::glue("dplyr mediana {tpch_query_1$median[tpch_query_1$expression == 'dplyr']}"))
+tpch_query_1$median[tpch_query_1$expression == 'dplyr']
+tpch_query_1$expression == 'dplyr'
+tpch_query_1$expression
+tpch_query_1$expression$duckdb
+description(tpch_query_1$expression)
+tpch_query_1$expression$description
+tpch_query_1$expression
+which(tpch_query_1$expression, "dplyr")
+?which
+?mark
+names(tpch_query_1$expression)
+names(tpch_query_1$expression) == "dplyr"
+print(glue::glue("dplyr mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'dplyr']}"))
+autoplot(tpch_query_1) +
+theme(axis.text.x = element_text(size = 17),
+axis.text.y = element_text(size = 17)) +
+labs(title = "TPC-H Query 1 rezultatai",
+subtitle = glue::glue("dplyr mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'dplyr']}, duckplyr mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'duckplyr']}, duckdb mediana {tpch_query_1$median[names(tpch_query_1$expression) == 'duckdb']}"))
+dataset <- "https://static.data.gouv.fr/resources/bureaux-de-vote-et-adresses-de-leurs-electeurs/20230626-135723/table-adresses-reu.parquet"
+dbExecute(con, "INSTALL httpfs")
+dbExecute(con, "LOAD httpfs")
+dbExecute(con, "INSTALL httpfs")
+dbExecute(con, "LOAD httpfs")
+dbSendStatement(con, "LOAD httpfs;")
+dbSendStatement(con, "INSTALL httpfs;")
+dbSendStatement(con, "LOAD httpfs;")
+dbSendQuery(con, "select * from read_parquet('https://static.data.gouv.fr/resources/bureaux-de-vote-et-adresses-de-leurs-electeurs/20230626-135723/table-adresses-reu.parquet') limit 5")
+dbExecute(con, "INSTALL httpfs;")
+dbExecute(con, "LOAD httpfs;")
+con <- dbConnect(duckdb::duckdb(), ":memory:")
+dbExecute(con, "INSTALL httpfs;")
+dbExecute(con, "LOAD httpfs;")

@@ -1,0 +1,4 @@
+"0","dbSendStatement(con, ""COPY (select * from read_parquet('data/**/*.parquet') where year = 2019 and month < 7) TO 'nyc-taxi-2019-h1.csv' (HEADER, DELIMITER ';');"")
+"
+"2","<duckdb_result 05350 connection=9b1d0 statement='COPY (select * from read_parquet('data/**/*.parquet') where year = 2019 and month < 7) TO 'nyc-taxi-2019-h1.csv' (HEADER, DELIMITER ';');'>
+"
