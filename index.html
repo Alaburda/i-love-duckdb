@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="i-love-duckdb_files/libs/clipboard/clipboard.min.js"></script>
-<script src="i-love-duckdb_files/libs/quarto-html/tabby.min.js"></script>
-<script src="i-love-duckdb_files/libs/quarto-html/popper.min.js"></script>
-<script src="i-love-duckdb_files/libs/quarto-html/tippy.umd.min.js"></script>
-<link href="i-love-duckdb_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="i-love-duckdb_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="i-love-duckdb_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
-<link href="i-love-duckdb_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+<script src="index_files/libs/clipboard/clipboard.min.js"></script>
+<script src="index_files/libs/quarto-html/tabby.min.js"></script>
+<script src="index_files/libs/quarto-html/popper.min.js"></script>
+<script src="index_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="index_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="index_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="index_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="index_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.5.33">
 
   <meta name="author" content="Paulius Alaburda">
@@ -15,8 +15,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="i-love-duckdb_files/libs/revealjs/dist/reset.css">
-  <link rel="stylesheet" href="i-love-duckdb_files/libs/revealjs/dist/reveal.css">
+  <link rel="stylesheet" href="index_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="index_files/libs/revealjs/dist/reveal.css">
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -95,11 +95,11 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="i-love-duckdb_files/libs/revealjs/dist/theme/quarto.css">
-  <link href="i-love-duckdb_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
-  <link href="i-love-duckdb_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
-  <link href="i-love-duckdb_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
-  <link href="i-love-duckdb_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <link rel="stylesheet" href="index_files/libs/revealjs/dist/theme/quarto.css">
+  <link href="index_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="index_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="index_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="index_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
 
   .callout {
@@ -390,8 +390,9 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" class="quarto-title-block center">
-  <h1 class="title">I Love DuckDB</h1>
+<section id="title-slide" data-background-color="#000000" data-background-image="images/ignitis_logo.png" data-background-position="bottom 50px right 50px" data-background-size="19%" class="quarto-title-block center">
+  <h1 class="title">I Love <font color="#fff100">DuckDB</font></h1>
+  <p class="subtitle">Business Garden RUG, 2024-05-16</p>
 
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
@@ -402,18 +403,18 @@ Paulius Alaburda
 </div>
 
 </section>
-<section id="ką-galima-buvo-rinktis-iš-duomenų-bazių-2018-m." class="slide level2">
-<h2>Ką galima buvo rinktis iš Duomenų bazių 2018 m.?</h2>
-<p>Jeigu nori <strong>sukti</strong> analitines užklausas, turėjai turėti dedikuotą serverį (ir komandą).</p>
+<section id="kokias-duomenų-bazes-buvo-galima-rinktis-2018-m." class="slide level2">
+<h2>Kokias Duomenų bazes buvo galima rinktis 2018 m.?</h2>
+<p>Jeigu nori <em>sukti</em> analitines užklausas, turėjai turėti dedikuotą serverį (ir komandą).</p>
 
 <img data-src="images/clipboard-49769828.png" class="quarto-figure quarto-figure-center r-stretch" width="540"><div class="footer">
 <p>Hannes Mühleisen &amp; Mark Raasveldt, <a href="https://duckdb.org/pdf/sigmod2021-muehleisen-inprocess-slides.pdf">The Case for In-Process Analytics</a></p>
 </div>
 </section>
-<section id="kas-tuo-metu-buvo-išleista" class="slide level2">
-<h2>Kas tuo metu buvo išleista?</h2>
+<section id="progresas-duomenų-saugojime-ir-apdorojime" class="slide level2">
+<h2>Progresas duomenų saugojime ir apdorojime</h2>
 <ul>
-<li>Nauji formatai: 2013 m. .parquet, 2016 m. Arrow projektas</li>
+<li>Nauji formatai: 2013 m. .parquet, 2016 m. Arrow projektas, 2017 m. Iceberg, Hudi</li>
 <li>Nauji column-store varikliai: 2015 m. Microsoft VertiPaq, 2019 m. Tableau Hyper</li>
 </ul>
 
@@ -422,7 +423,7 @@ Paulius Alaburda
 </div>
 </section>
 <section id="kas-yra-duckdb" class="slide level2">
-<h2>Kas yra DuckDB?</h2>
+<h2>Kas yra DuckDB? <img data-src="hexes/duckdb.png" class="absolute" style="top: -20px; right: 0px; height: 74.24px; "></h2>
 <ul>
 <li>In-process SQL OLAP duomenų bazė sukurta <a href="https://duckdblabs.com/">DuckDB Labs</a></li>
 <li>Parašyta su C++, neturi priklausinių ir turi bibliotekas populiariose programavimo kalbose, įskaitant <code>R</code>.</li>
@@ -431,7 +432,7 @@ Paulius Alaburda
 </ul>
 </section>
 <section id="kaip-įsijungti-duckdb" class="slide level2">
-<h2>Kaip įsijungti DuckDB?</h2>
+<h2>Kaip įsijungti DuckDB? <img data-src="hexes/duckdb.png" class="absolute" style="top: -20px; right: 0px; height: 74.24px; "></h2>
 <ul>
 <li>R paketas yra <code>DuckDB</code></li>
 <li>DuckDB yra kaip visos DB - dbConnect priima <code>duckdb::duckdb()</code> kaip driver’į ir sukuria DuckDB sąsają</li>
@@ -533,15 +534,31 @@ Paulius Alaburda
 </div>
 </section>
 <section id="failų-skaitymas" class="slide level2">
-<h2>Failų skaitymas</h2>
-
-<img data-src="i-love-duckdb_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
-<section id="bet-duckdb-gali-siųsti-užklausas-į-failus" class="slide level2">
-<h2>Bet DuckDB gali siųsti užklausas į failus!</h2>
-
-<img data-src="i-love-duckdb_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"></section>
-<section id="duckdb-gali-dirbti-su-skirtingais-failų-formatais" class="slide level2">
-<h2>DuckDB gali dirbti su skirtingais failų formatais</h2>
+<h2>Failų skaitymas <img data-src="hexes/readr.png" class="absolute" style="top: -20px; right: 0px; width: 64px; height: 74.24px; "> <img data-src="hexes/datatable.png" class="absolute" style="top: -20px; right: 64px; width: 64px; height: 74.24px; "></h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-6-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="duckdb-gali-kverksėti-su-failais-tiesiogiai" class="slide level2">
+<h2>DuckDB gali kverksėti su failais tiesiogiai <img data-src="hexes/duckdb.png" class="absolute" style="top: -20px; right: 0px; height: 74.24px; "></h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-7-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="duckdb-kverksi-su-įvairiais-failais" class="slide level2">
+<h2>DuckDB kverksi su įvairiais failais</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href=""></a><span class="co"># Lentelės viduje DuckDB</span></span>
 <span id="cb6-2"><a href=""></a><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM lineitem LIMIT 5"</span>)</span>
@@ -552,12 +569,15 @@ Paulius Alaburda
 <span id="cb6-7"><a href=""></a><span class="co"># parquet</span></span>
 <span id="cb6-8"><a href=""></a><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM '../lineitem.parquet' LIMIT 5"</span>)</span>
 <span id="cb6-9"><a href=""></a></span>
-<span id="cb6-10"><a href=""></a><span class="co"># R objektai?!</span></span>
-<span id="cb6-11"><a href=""></a><span class="fu">duckdb_register</span>(con, <span class="at">name =</span> <span class="st">"lineitem"</span>, <span class="at">df =</span> lineitem)</span>
-<span id="cb6-12"><a href=""></a></span>
-<span id="cb6-13"><a href=""></a><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM lineitem LIMIT 5"</span>)</span>
+<span id="cb6-10"><a href=""></a><span class="co"># .json...</span></span>
+<span id="cb6-11"><a href=""></a><span class="co"># SQLite...</span></span>
+<span id="cb6-12"><a href=""></a><span class="co"># Postgres...</span></span>
+<span id="cb6-13"><a href=""></a><span class="co"># .xlsx?!</span></span>
 <span id="cb6-14"><a href=""></a></span>
-<span id="cb6-15"><a href=""></a><span class="co"># Taip pat .json, .xlsx, SQLite, Postgres!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-15"><a href=""></a><span class="co"># R objektai?!?!</span></span>
+<span id="cb6-16"><a href=""></a><span class="fu">duckdb_register</span>(con, <span class="at">name =</span> <span class="st">"lineitem"</span>, <span class="at">df =</span> lineitem)</span>
+<span id="cb6-17"><a href=""></a></span>
+<span id="cb6-18"><a href=""></a><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM lineitem LIMIT 5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="duckdb-suderinamas-su-dplyr" class="slide level2">
@@ -570,13 +590,12 @@ Paulius Alaburda
 </section>
 <section id="ką-reikia-pakeisti-savo-kode" class="slide level2">
 <h2>Ką reikia pakeisti savo kode?</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
+<h3 id="prieš">Prieš</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a>lineitem <span class="sc">%&gt;%</span> </span>
 <span id="cb7-2"><a href=""></a>  <span class="fu">tpch_01</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div><div class="column" style="width:50%;">
+<h3 id="po">Po</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href=""></a>con <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(<span class="fu">duckdb</span>())</span>
 <span id="cb8-2"><a href=""></a></span>
@@ -585,13 +604,11 @@ Paulius Alaburda
 <span id="cb8-5"><a href=""></a><span class="fu">tbl</span>(con, <span class="st">"lineitem"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb8-6"><a href=""></a>  <span class="fu">tpch_01</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-</div>
 </section>
 <section id="dplyr-duckdb-greičio-palyginimas" class="slide level2">
 <h2>dplyr + DuckDB greičio palyginimas</h2>
 
-<img data-src="i-love-duckdb_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
+<img data-src="index_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
 <section id="kada-apsimoka-naudoti-duckdb" class="slide level2">
 <h2>Kada apsimoka naudoti DuckDB?</h2>
 
@@ -599,8 +616,8 @@ Paulius Alaburda
 <p>Art Steinmetz, <a href="https://outsiderdata.netlify.app/posts/2024-04-10-the-truth-about-tidy-wrappers/benchmark_wrappers#should-you-always-use-an-alt-database">The Truth About Data Wrappers</a></p>
 </div>
 </section>
-<section id="duckplyr---naujas-vaikis-rajone" class="slide level2">
-<h2>duckplyr - naujas vaikis rajone</h2>
+<section id="duckplyr---nauja-antis-tvenkinyje" class="slide level2">
+<h2>duckplyr - nauja antis tvenkinyje</h2>
 <ul>
 <li>Posit ir DuckDB Labs kartu kuria biblioteką, su kuria reikės tik vieno eilutės pakeitimo.</li>
 <li>duckplyr naudoja DuckDB relational API tiesiogiai - nesinaudoja DuckDB SQL sąsaja</li>
@@ -611,12 +628,14 @@ Paulius Alaburda
 <section id="duckplyr-sintaksė" class="slide level2">
 <h2>duckplyr sintaksė</h2>
 <h3 id="as_duckplyr_df">as_duckplyr_df()</h3>
+<p>1 eilutė vienai lentelei</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9" data-code-line-numbers="1-4|2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a>lineitem <span class="sc">%&gt;%</span> </span>
 <span id="cb9-2"><a href=""></a>  <span class="fu">as_duckplyr_df</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb9-3"><a href=""></a>  <span class="fu">tpch_01</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <h3 id="duckplyrmethods_overwrite">duckplyr::methods_overwrite()</h3>
+<p>1 eilutė visoms lentelėms</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10" data-code-line-numbers="1-4|1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a>duckplyr<span class="sc">::</span><span class="fu">methods_overwrite</span>()</span>
 <span id="cb10-2"><a href=""></a></span>
@@ -634,7 +653,7 @@ Paulius Alaburda
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="i-love-duckdb_files/figure-revealjs/unnamed-chunk-14-1.png" width="960"></p>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-14-1.png" width="960"></p>
 </figure>
 </div>
 </div>
@@ -645,7 +664,7 @@ Paulius Alaburda
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="i-love-duckdb_files/figure-revealjs/unnamed-chunk-15-1.png" width="960"></p>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-15-1.png" width="960"></p>
 </figure>
 </div>
 </div>
@@ -655,7 +674,7 @@ Paulius Alaburda
 </div>
 </section>
 <section id="duckdb-plėtiniai-extensions" class="slide level2">
-<h2>DuckDB plėtiniai (extensions)</h2>
+<h2>DuckDB plėtiniai (extensions) <img data-src="hexes/duckdb.png" class="absolute" style="top: -20px; right: 0px; height: 74.24px; "></h2>
 <p>DuckDB galima išplėsti su <a href="https://duckdb.org/docs/extensions/overview.html">plėtiniais</a>. Pavyzdžiui, <code>httpfs</code> leidžia skaityti nuotolinius .parquet failus:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href=""></a>dataset <span class="ot">&lt;-</span> <span class="st">"https://static.data.gouv.fr/resources/bureaux-de-vote-et-adresses-de-leurs-electeurs/20230626-135723/table-adresses-reu.parquet"</span></span>
@@ -674,6 +693,16 @@ Paulius Alaburda
 <div class="footer">
 <p>iresmi.net, <a href="https://r.iresmi.net/posts/2023/fast_remote_parquet/">Fast Remote Parquet</a></p>
 </div>
+</section>
+<section id="kiti-plėtiniai" class="slide level2">
+<h2>Kiti plėtiniai</h2>
+<ul>
+<li><a href="https://github.com/Hugoberry/duckdb-pbix-extension">.pbix failų skaitymas</a></li>
+<li><a href="https://github.com/duckdb/duckdb_delta">Delta lentelės</a> nuo v0.10.3</li>
+</ul>
+<div class="footer">
+<p>Igor Cotruta, <a href="https://querypower.com/2024/05/15/lessons-learned-from-unpacking-vertipaq-a-developers-journey/">Lessons Learned from Unpacking VertiPaq: A Developer’s Journey</a></p>
+</div>
 <div class="quarto-auto-generated-content">
 <div class="footer footer-default">
 
@@ -684,19 +713,19 @@ Paulius Alaburda
   </div>
 
   <script>window.backupDefine = window.define; window.define = undefined;</script>
-  <script src="i-love-duckdb_files/libs/revealjs/dist/reveal.js"></script>
+  <script src="index_files/libs/revealjs/dist/reveal.js"></script>
   <!-- reveal.js plugins -->
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  <script src="index_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="index_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="index_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="index_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="index_files/libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/notes/notes.js"></script>
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/search/search.js"></script>
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/zoom/zoom.js"></script>
-  <script src="i-love-duckdb_files/libs/revealjs/plugin/math/math.js"></script>
+  <script src="index_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="index_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="index_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="index_files/libs/revealjs/plugin/math/math.js"></script>
   <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
 
   <script>

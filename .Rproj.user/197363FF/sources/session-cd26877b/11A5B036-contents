@@ -1,7 +1,15 @@
 ---
-title: "I Love DuckDB"
+title: "I Love <FONT COLOR='#fff100'>DuckDB</FONT>"
+subtitle: "Business Garden RUG, 2024-05-16"
 author: "Paulius Alaburda"
-format: revealjs
+format: 
+  revealjs:
+    embed-resources: false
+    title-slide-attributes:
+      data-background-image: images/ignitis_logo.png
+      data-background-size: 19%
+      data-background-position: bottom 50px right 50px
+      data-background-color: "#000000"
 engine: knitr
 ---
 
@@ -20,11 +28,51 @@ options(duckdb.materialize_message = FALSE)
 
 con <- dbConnect(duckdb())
 
+hexes <- function(..., size = 64) {
+  x <- c(...)
+  x <- sort(unique(x), decreasing = TRUE)
+  right <- (seq_along(x) - 1) * size
+  
+  res <- glue::glue(
+    '![](hexes/<x>.png){.absolute top=-20 right=<right> width="<size>" height="<size * 1.16>"}',
+    .open = "<", .close = ">"
+  )
+  
+  paste0(res, collapse = " ")
+}
+
+hexes_svg <- function(..., size = 64) {
+  x <- c(...)
+  x <- sort(unique(x), decreasing = TRUE)
+  right <- (seq_along(x) - 1) * size
+  
+  res <- glue::glue(
+    '![](hexes/<x>.svg){.absolute top=-20 right=<right> width="<size>" height="<size * 1.16>"}',
+    .open = "<", .close = ">"
+  )
+  
+  paste0(res, collapse = " ")
+}
+
+hexes_duckdb <- function(..., size = 64) {
+  x <- c(...)
+  x <- sort(unique(x), decreasing = TRUE)
+  right <- (seq_along(x) - 1) * size
+  
+  res <- glue::glue(
+    '![](hexes/<x>.png){.absolute top=-20 right=<right> height="<size * 1.16>"}',
+    .open = "<", .close = ">"
+  )
+  
+  paste0(res, collapse = " ")
+}
+
+
 ```
 
-## Ką galima buvo rinktis iš Duomenų bazių 2018 m.?
+## Kokias Duomenų bazes buvo galima rinktis 2018 m.?
 
-Jeigu nori **sukti** analitines užklausas, turėjai turėti dedikuotą serverį (ir komandą).
+Jeigu nori *sukti* analitines užklausas, turėjai turėti dedikuotą serverį (ir komandą).
 
 ![](images/clipboard-49769828.png){fig-align="center" width="540"}
 
@@ -32,9 +80,9 @@ Jeigu nori **sukti** analitines užklausas, turėjai turėti dedikuotą serverį
 Hannes Mühleisen & Mark Raasveldt, [The Case for In-Process Analytics](https://duckdb.org/pdf/sigmod2021-muehleisen-inprocess-slides.pdf)
 :::
 
-## Kas tuo metu buvo išleista?
+## Progresas duomenų saugojime ir apdorojime
 
--   Nauji formatai: 2013 m. .parquet, 2016 m. Arrow projektas
+-   Nauji formatai: 2013 m. .parquet, 2016 m. Arrow projektas, 2017 m. Iceberg, Hudi
 -   Nauji column-store varikliai: 2015 m. Microsoft VertiPaq, 2019 m. Tableau Hyper
 
 ![](images/clipboard-466915577.png)
@@ -43,14 +91,14 @@ Hannes Mühleisen & Mark Raasveldt, [The Case for In-Process Analytics](https://
 Michael Berk, [Demystifying the Parquet File Format](https://towardsdatascience.com/demystifying-the-parquet-file-format-13adb0206705)
 :::
 
-## Kas yra DuckDB?
+## Kas yra DuckDB? `r hexes_duckdb("duckdb")`
 
 -   In-process SQL OLAP duomenų bazė sukurta [DuckDB Labs](https://duckdblabs.com/)
 -   Parašyta su C++, neturi priklausinių ir turi bibliotekas populiariose programavimo kalbose, įskaitant `R`.
 -   Sukuria DB atmintyje arba sukuria vieną failą kaip SQLite
 -   Nemokama!
 
-## Kaip įsijungti DuckDB?
+## Kaip įsijungti DuckDB? `r hexes_duckdb("duckdb")`
 
 -   R paketas yra `DuckDB`
 -   DuckDB yra kaip visos DB - dbConnect priima `duckdb::duckdb()` kaip driver'į ir sukuria DuckDB sąsają
@@ -157,14 +205,14 @@ dbGetQuery(con, "SELECT * FROM lineitem LIMIT 5")
 
 ```
 
-## Failų skaitymas
+## Failų skaitymas `r hexes("datatable", "readr")`
 
 ```{r}
 
 #| echo: false
 
 read_benchmark <- bench::mark(
-  min_iterations = 3,
+  min_iterations = 5,
   duckdb_csv = dbGetQuery(con, "select * from '../lineitem.csv'"),
   duckdb_parquet = dbGetQuery(con, "select * from '../lineitem.parquet'"),
   readr_csv = readr::read_csv2("../lineitem.csv"),
@@ -179,7 +227,7 @@ autoplot(read_benchmark) +
 
 ```
 
-## Bet DuckDB gali siųsti užklausas į failus!
+## DuckDB gali kverksėti su failais tiesiogiai `r hexes_duckdb("duckdb")`
 
 ```{r}
 #| echo: false
@@ -241,7 +289,7 @@ autoplot(agg_benchmark) +
 
 ```
 
-## DuckDB gali dirbti su skirtingais failų formatais
+## DuckDB kverksi su įvairiais failais
 
 ```{r}
 #| eval: false
@@ -256,12 +304,15 @@ dbGetQuery(con, "SELECT * FROM '../lineitem.csv' LIMIT 5")
 # parquet
 dbGetQuery(con, "SELECT * FROM '../lineitem.parquet' LIMIT 5")
 
-# R objektai?!
+# .json...
+# SQLite...
+# Postgres...
+# .xlsx?!
+
+# R objektai?!?!
 duckdb_register(con, name = "lineitem", df = lineitem)
 
 dbGetQuery(con, "SELECT * FROM lineitem LIMIT 5")
-
-# Taip pat .json, .xlsx, SQLite, Postgres!
 
 ```
 
@@ -278,8 +329,8 @@ dbGetQuery(con, "SELECT * FROM lineitem LIMIT 5")
 
 ## Ką reikia pakeisti savo kode?
 
-::: columns
-::: {.column width="50%"}
+### Prieš
+
 ```{r}
 #| eval: false
 #| echo: true
@@ -287,9 +338,9 @@ lineitem %>%
   tpch_01()
 
 ```
-:::
 
-::: {.column width="50%"}
+### Po
+
 ```{r}
 #| eval: false
 #| echo: true
@@ -302,8 +353,6 @@ tbl(con, "lineitem") %>%
   tpch_01()
 
 ```
-:::
-:::
 
 ## dplyr + DuckDB greičio palyginimas
 
@@ -375,7 +424,7 @@ autoplot(agg_benchmark) +
 Art Steinmetz, [The Truth About Data Wrappers](https://outsiderdata.netlify.app/posts/2024-04-10-the-truth-about-tidy-wrappers/benchmark_wrappers#should-you-always-use-an-alt-database)
 :::
 
-## duckplyr - naujas vaikis rajone
+## duckplyr - nauja antis tvenkinyje
 
 -   Posit ir DuckDB Labs kartu kuria biblioteką, su kuria reikės tik vieno eilutės pakeitimo.
 -   duckplyr naudoja DuckDB relational API tiesiogiai - nesinaudoja DuckDB SQL sąsaja
@@ -386,6 +435,8 @@ Art Steinmetz, [The Truth About Data Wrappers](https://outsiderdata.netlify.app/
 ## duckplyr sintaksė
 
 ### as_duckplyr_df()
+
+1 eilutė vienai lentelei
 
 ```{r}
 #| eval: false
@@ -399,6 +450,8 @@ lineitem %>%
 ```
 
 ### duckplyr::methods_overwrite()
+
+1 eilutė visoms lentelėms
 
 ```{r}
 #| eval: false
@@ -479,7 +532,7 @@ autoplot(tpch_query_1) +
 ```
 :::
 
-## DuckDB plėtiniai (extensions)
+## DuckDB plėtiniai (extensions) `r hexes_duckdb("duckdb")`
 
 DuckDB galima išplėsti su [plėtiniais](https://duckdb.org/docs/extensions/overview.html). Pavyzdžiui, `httpfs` leidžia skaityti nuotolinius .parquet failus:
 
@@ -507,3 +560,15 @@ dbGetQuery(con, "
 ::: footer
 iresmi.net, [Fast Remote Parquet](https://r.iresmi.net/posts/2023/fast_remote_parquet/)
 :::
+
+## Kiti plėtiniai
+
+- [.pbix failų skaitymas](https://github.com/Hugoberry/duckdb-pbix-extension)
+- [Delta lentelės](https://github.com/duckdb/duckdb_delta) nuo v0.10.3
+
+::: footer
+Igor Cotruta, [Lessons Learned from Unpacking VertiPaq: A Developer’s Journey](https://querypower.com/2024/05/15/lessons-learned-from-unpacking-vertipaq-a-developers-journey/)
+:::
+
+
+
